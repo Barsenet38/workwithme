@@ -12,6 +12,8 @@ import {
   Cpu,
   Database
 } from "lucide-react";
+import Link from "next/link";
+
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -109,69 +111,40 @@ ctx.fill();
     };
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    // Basic validation
-    if (!username.trim() || !password.trim()) {
-      setError("Please enter both username and password");
-      setLoading(false);
-      return;
-    }
+  if (!username.trim() || !password.trim()) {
+    setError("Please enter both username and password");
+    setLoading(false);
+    return;
+  }
 
-    try {
-      // Simulate API call to your authentication service
-      const response = await simulateAuthAPI(username, password);
-      
-      if (response.success) {
-        // Redirect to dashboard (in a real app, you'd use next/navigation)
-        alert(`Login successful! Welcome ${response.user.name}`);
-        // Here you would typically set auth state and redirect
-      } else {
-        setError(response.message || "Invalid credentials");
-      }
-    } catch (err) {
-      setError("An error occurred during login. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const simulateAuthAPI = (username: string, password: string): Promise<any> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Mock authentication logic
-        if (username === "admin" && password === "admin123") {
-          resolve({
-            success: true,
-            user: {
-              name: "Admin User",
-              role: "HR Manager",
-              department: "Human Resources"
-            },
-            token: "mock-jwt-token"
-          });
-        } else if (username === "employee" && password === "employee123") {
-          resolve({
-            success: true,
-            user: {
-              name: "Regular Employee",
-              role: "Employee",
-              department: "Operations"
-            },
-            token: "mock-jwt-token"
-          });
-        } else {
-          resolve({
-            success: false,
-            message: "Invalid username or password"
-          });
-        }
-      }, 1500);
+  try {
+    const response = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
     });
-  };
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert(`Login successful! Welcome ${data.user.name}`);
+      // Store token or redirect here
+      // e.g., localStorage.setItem("token", data.token);
+    } else {
+      setError(data.message || "Invalid credentials");
+    }
+  } catch (err) {
+    setError("An error occurred during login. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className={`${theme} min-h-screen bg-gradient-to-br from-black to-slate-900 text-slate-100 relative overflow-hidden`}>
@@ -267,9 +240,13 @@ ctx.fill();
                   </div>
 
                   <div className="text-sm">
-                    <a href="#" className="font-medium text-cyan-500 hover:text-cyan-400">
-                      Forgot password?
-                    </a>
+                   <Link
+  href="/auth/forgot-password"
+  className="font-medium text-cyan-500 hover:text-cyan-400"
+>
+  Forgot password?
+</Link>
+
                   </div>
                 </div>
 
