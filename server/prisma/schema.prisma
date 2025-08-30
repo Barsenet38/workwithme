@@ -364,17 +364,16 @@ model PerformanceReview {
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  user        User?    @relation(fields: [userId], references: [id])
-  userId      String?
-  action      String   // e.g., "USER_CREATED", "LEAVE_APPROVED", "SETTING_CHANGED"
-  resource    String?  // e.g., "User", "LeaveRequest"
-  resourceId  String?
-  details     Json?
-  ipAddress   String?
-  userAgent   String?
-  
+  id        String   @id @default(cuid())
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String?  // make optional
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  action    String
+  resource  String?
+  resourceId String?
+  details   Json?
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
 }
