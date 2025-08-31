@@ -10,8 +10,9 @@ import {
   LogOut, User, Shield, Briefcase,
   Hexagon
 } from "lucide-react";
+import { JwtPayload } from '@/types/user';
 
-interface UserData {
+interface SidebarUserData {
   role: string;
   name: string;
 }
@@ -20,28 +21,31 @@ export default function Sidebar() {
   const { company } = useParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<SidebarUserData | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const decoded: any = jwtDecode(token);
-        setUser(decoded);
+        const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
+        setUser({
+          role: decoded.role,
+          name: decoded.name
+        });
       } catch (err) {
         console.error("Invalid token");
       }
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     localStorage.removeItem("token");
     router.push("/auth");
   };
 
-  if (!user) return null;
+  const isActive = (path: string): boolean => pathname === path;
 
-  const isActive = (path: string) => pathname === path;
+  if (!user) return null;
 
   return (
     <div className="w-64 bg-slate-900/80 backdrop-blur-sm text-slate-100 min-h-screen p-4 border-r border-slate-700/50">
