@@ -15,6 +15,6 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["server.ts", "src/**/*.ts"],   // your server + src folder
+  "include": ["server.ts", "src/**/*.ts",],
   "exclude": ["node_modules", "dist"]
 }

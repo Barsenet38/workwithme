@@ -377,3 +377,14 @@ model AuditLog {
   userAgent String?
   createdAt DateTime @default(now())
 }
+
+// 👇 Add this
+generator db {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"] // keep your own features if any
+}
+
+// Prisma seeding configuration
+generator seed {
+  provider = "ts-node"
+}
