@@ -8,7 +8,7 @@ import {
   Home, Users, Settings, FileText, 
   Calendar, DollarSign, BarChart3, 
   LogOut, User, Shield, Briefcase,
-  Hexagon
+  Hexagon, CreditCard, GitMerge, BarChart
 } from "lucide-react";
 import { JwtPayload } from '@/types/user';
 
@@ -83,37 +83,20 @@ export default function Sidebar() {
           Dashboard
         </Link>
 
-        {/* Admin & HR Navigation */}
-        {(user.role === "ADMIN" || user.role === "HR") && (
-          <>
-            <Link 
-              href={`/${company}/hr/employees`}
-              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-                isActive(`/${company}/hr/employees`) 
-                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
-                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
-              }`}
-            >
-              <Users className="h-4 w-4 mr-3" />
-              Employees
-            </Link>
-            <Link 
-              href={`/${company}/hr/payroll`}
-              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-                isActive(`/${company}/hr/payroll`) 
-                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
-                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
-              }`}
-            >
-              <DollarSign className="h-4 w-4 mr-3" />
-              Payroll
-            </Link>
-          </>
-        )}
-
-        {/* Admin Only Navigation */}
+        {/* Admin Navigation */}
         {user.role === "ADMIN" && (
           <>
+            <Link 
+              href={`/${company}/admin/dashboard`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/admin') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <Shield className="h-4 w-4 mr-3" />
+              Admin Dashboard
+            </Link>
             <Link 
               href={`/${company}/admin/users`}
               className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
@@ -122,8 +105,52 @@ export default function Sidebar() {
                   : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
               }`}
             >
-              <Shield className="h-4 w-4 mr-3" />
+              <Users className="h-4 w-4 mr-3" />
               User Management
+            </Link>
+            <Link 
+              href={`/${company}/admin/billing`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                isActive(`/${company}/admin/billing`) 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <CreditCard className="h-4 w-4 mr-3" />
+              Billing
+            </Link>
+            <Link 
+              href={`/${company}/admin/integrations`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                isActive(`/${company}/admin/integrations`) 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <GitMerge className="h-4 w-4 mr-3" />
+              Integrations
+            </Link>
+            <Link 
+              href={`/${company}/admin/reports`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                isActive(`/${company}/admin/reports`) 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <BarChart className="h-4 w-4 mr-3" />
+              Reports
+            </Link>
+            <Link 
+              href={`/${company}/admin/security`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                isActive(`/${company}/admin/security`) 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <Shield className="h-4 w-4 mr-3" />
+              Security
             </Link>
             <Link 
               href={`/${company}/admin/settings`}
@@ -139,30 +166,91 @@ export default function Sidebar() {
           </>
         )}
 
+        {/* HR Navigation */}
+        {(user.role === "ADMIN" || user.role === "HR") && (
+          <>
+            <Link 
+              href={`/${company}/hr/employees`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/hr/employees') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <Users className="h-4 w-4 mr-3" />
+              Employees
+            </Link>
+            <Link 
+              href={`/${company}/hr/payroll`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/hr/payroll') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <DollarSign className="h-4 w-4 mr-3" />
+              Payroll
+            </Link>
+            <Link 
+              href={`/${company}/hr/attendance`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/hr/attendance') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <Calendar className="h-4 w-4 mr-3" />
+              Attendance
+            </Link>
+            <Link 
+              href={`/${company}/hr/recruitment`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/hr/recruitment') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <Briefcase className="h-4 w-4 mr-3" />
+              Recruitment
+            </Link>
+          </>
+        )}
+
         {/* Manager Navigation */}
         {(user.role === "ADMIN" || user.role === "HR" || user.role === "MANAGER") && (
           <>
             <Link 
               href={`/${company}/manager/team`}
               className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-                isActive(`/${company}/manager/team`) 
+                pathname?.includes('/manager/team') 
                   ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
                   : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
               }`}
             >
-              <Briefcase className="h-4 w-4 mr-3" />
+              <Users className="h-4 w-4 mr-3" />
               Team Management
             </Link>
             <Link 
               href={`/${company}/manager/approvals`}
               className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-                isActive(`/${company}/manager/approvals`) 
+                pathname?.includes('/manager/approvals') 
                   ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
                   : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
               }`}
             >
               <FileText className="h-4 w-4 mr-3" />
               Approvals
+            </Link>
+            <Link 
+              href={`/${company}/manager/performance`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/manager/performance') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <BarChart3 className="h-4 w-4 mr-3" />
+              Performance
             </Link>
           </>
         )}
@@ -171,7 +259,7 @@ export default function Sidebar() {
         <Link 
           href={`/${company}/employee/profile`}
           className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            isActive(`/${company}/employee/profile`) 
+            pathname?.includes('/employee/profile') 
               ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
               : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
           }`}
@@ -183,13 +271,37 @@ export default function Sidebar() {
         <Link 
           href={`/${company}/employee/leave`}
           className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            isActive(`/${company}/employee/leave`) 
+            pathname?.includes('/employee/leave') 
               ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
               : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
           }`}
         >
           <Calendar className="h-4 w-4 mr-3" />
           Leave Requests
+        </Link>
+
+        <Link 
+          href={`/${company}/employee/payroll`}
+          className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+            pathname?.includes('/employee/payroll') 
+              ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+              : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+          }`}
+        >
+          <DollarSign className="h-4 w-4 mr-3" />
+          My Payroll
+        </Link>
+
+        <Link 
+          href={`/${company}/employee/documents`}
+          className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+            pathname?.includes('/employee/documents') 
+              ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+              : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+          }`}
+        >
+          <FileText className="h-4 w-4 mr-3" />
+          Documents
         </Link>
 
         {/* Logout */}

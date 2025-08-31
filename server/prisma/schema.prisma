@@ -84,11 +84,6 @@ model Company {
   documents   Document[]
   payrolls    Payroll[]
   performanceReviews PerformanceReview[]
-  billing     Billing?
-  security    SecuritySettings?
-  Integrations Integration[]
-
-
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -182,7 +177,6 @@ model User {
   performanceReviewsAsReviewer PerformanceReview[] @relation("ReviewerReviews")
   approvedLeaveRequests LeaveRequest[] @relation("ApprovedLeaveRequests")
   auditLogs    AuditLog[]
-  loginHistories LoginHistory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -385,131 +379,13 @@ model AuditLog {
 }
 
 
+// 👇 Add this
+generator db {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"] // keep your own features if any
+}
+
 // Prisma seeding configuration
 generator seed {
   provider = "ts-node"
-}
-// model Company {
-//   id          String   @id @default(cuid())
-//   name        String
-//   email       String
-//   phone       String?
-//   address     String?
-//   website     String?
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-  
-//   // Relations
-//   users       User[]
-//   departments Department[]
-//   billing     Billing?
-//   settings    CompanySettings?
-//   security    SecuritySettings?
-//   integrations Integration[]
-//   auditLogs   AuditLog[]
-// }
-
-model Billing {
-  id          String   @id @default(cuid())
-  plan        String   // e.g., "FREE", "PRO", "ENTERPRISE"
-  status      String   // e.g., "ACTIVE", "CANCELED", "PAST_DUE"
-  seats       Int
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String   @unique
-  invoices    Invoice[]
-}
-
-model Invoice {
-  id          String   @id @default(cuid())
-  amount      Float
-  currency    String   @default("USD")
-  status      String   // e.g., "PAID", "PENDING", "FAILED"
-  issueDate   DateTime
-  dueDate     DateTime
-  pdfUrl      String?
-  createdAt   DateTime @default(now())
-  
-  // Relations
-  billing     Billing @relation(fields: [billingId], references: [id], onDelete: Cascade)
-  billingId   String
-}
-
-// model CompanySettings {
-//   id          String   @id @default(cuid())
-//   timezone    String   @default("UTC")
-//   dateFormat  String   @default("MM/DD/YYYY")
-//   language    String   @default("en")
-//   allowOvertime Boolean @default(false)
-//   requireApprovalForOvertime Boolean @default(true)
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-  
-//   // Relations
-//   company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-//   companyId   String   @unique
-// }
-
-model Integration {
-  id          String   @id @default(cuid())
-  name        String   // e.g., "SLACK", "GOOGLE_CALENDAR", "PAYPAL"
-  type        String   // e.g., "COMMUNICATION", "CALENDAR", "PAYROLL"
-  status      String   @default("INACTIVE") // "ACTIVE", "INACTIVE", "ERROR"
-  config      Json?    // Configuration data stored as JSON
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-}
-
-model SecuritySettings {
-  id          String   @id @default(cuid())
-  passwordMinLength Int @default(8)
-  passwordRequireUppercase Boolean @default(true)
-  passwordRequireLowercase Boolean @default(true)
-  passwordRequireNumbers Boolean @default(true)
-  passwordRequireSpecialChars Boolean @default(true)
-  passwordExpiryDays Int @default(90)
-  sessionTimeoutMinutes Int @default(480)
-  twoFactorEnabled Boolean @default(false)
-  loginAttemptsBeforeLockout Int @default(5)
-  accountLockoutTimeMinutes Int @default(30)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String   @unique
-}
-
-// model AuditLog {
-//   id          String   @id @default(cuid())
-//   action      String   // e.g., "USER_CREATED", "SETTINGS_UPDATED"
-//   details     String?
-//   ipAddress   String?
-//   userAgent   String?
-//   timestamp   DateTime @default(now())
-  
-//   // Relations
-//   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-//   userId      String?
-//   company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-//   companyId   String
-// }
-
-model LoginHistory {
-  id          String   @id @default(cuid())
-  userId      String
-  date        DateTime @default(now())
-  success     Boolean
-  
-  // Relations
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

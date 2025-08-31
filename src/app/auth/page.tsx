@@ -1,11 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react";
-import MainLayout from "@/components/layout/MainLayout";
+import LoginLayout from "@/components/layout/LoginLayout";
 
-export default function LoginPage() {
+import { Hexagon, Cpu, Database } from "lucide-react";
+interface MainLayoutProps {
+  children: ReactNode;
+  title?: string;
+  description?: string;
+  showHeader?: boolean;
+}
+export default function LoginPage({
+  children,
+  title = "HR SYSTEM",
+  description = "Human Resources Management Portal",
+  showHeader = true,
+}: MainLayoutProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,9 +61,12 @@ export default function LoginPage() {
 
   return (
     <>
-      <MainLayout>
+     
+      <LoginLayout>
+        
         <div className="max-w-md mx-auto bg-slate-900/50 backdrop-blur-lg rounded-xl shadow-lg border border-slate-700/50">
-          <div className="p-6 max-w-md mx-auto">
+         
+           <div className="p-6 max-w-md mx-auto">
             {error && (
               <div className="mb-6 p-3 bg-red-500/10 text-red-400 rounded-lg flex items-center border border-red-500/20">
                 <AlertCircle className="h-5 w-5 mr-2" />
@@ -114,7 +129,7 @@ export default function LoginPage() {
             </form>
           </div>
         </div>
-      </MainLayout>
+      </LoginLayout>
     </>
   );
 }

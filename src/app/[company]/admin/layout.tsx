@@ -1,6 +1,6 @@
 import AppLayout from "@/components/layout/AppLayout";
 
-export default function CompanyLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
