@@ -75,24 +75,40 @@ router.get("/:id", async (req, res) => {
       return res.status(400).json({ success: false, message: "managerId and companyId are required" });
     }
 
-    const teamMember = await prisma.user.findUnique({
-      where: {
-        id,
-        managerId,
-        companyId,
-        role: "EMPLOYEE",
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        position: true,
-        department: { select: { name: true } },
-        status: true,
-        // Add more fields as needed
-      },
-    });
+const teamMember = await prisma.user.findUnique({
+  where: { id },
+  select: {
+    id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    phone: true,
+    personalEmail: true,
+    avatar: true,
+    dateOfBirth: true,
+    address: true,
+    employeeId: true,
+    position: true,
+    department: { select: { id: true, name: true } },
+    employmentType: true,
+    status: true,
+    dateHired: true,
+    dateTerminated: true,
+    manager: { select: { id: true, firstName: true, lastName: true } },
+    bankAccount: true,
+    taxInfo: true,
+    leaveBalances: { include: { leaveType: true } },
+    leaveRequests: { include: { leaveType: true, approvedBy: true } },
+    attendances: true,
+    documents: true,
+    payrolls: true,
+    performanceReviewsAsReviewee: true,
+    performanceReviewsAsReviewer: true,
+    createdAt: true,
+    updatedAt: true,
+  },
+});
+
 
     if (!teamMember) {
       return res.status(404).json({ success: false, message: "Team member not found" });
