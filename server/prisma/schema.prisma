@@ -1,382 +1,195 @@
+const {
+  PrismaClient,
+  UserRole,
+  EmploymentType,
+  EmploymentStatus,
+  LeaveStatus,
+  PayrollStatus,
+} = require("@prisma/client");
+const bcrypt = require("bcrypt");
 
+const prisma = new PrismaClient();
 
-// schema.prisma
-generator client {
-  provider = "prisma-client-js"
+async function main() {
+  console.log("🌱 Seeding database...");
+
+  const passwordHash = await bcrypt.hash("password123", 10);
+
+  // --- Companies ---
+  const companiesData = [
+    {
+      name: "Acme Corp",
+      subdomain: "acme",
+      description: "Test company for HR system",
+      contactEmail: "hr@acme.com",
+      phone: "+1-555-123-4567",
+      address: { street: "123 Main St", city: "Metropolis", state: "CA", zipCode: "90001", country: "USA" },
+      subscriptionPlan: "pro",
+      billingEmail: "billing@acme.com",
+      status: "active",
+    },
+    {
+      name: "Globex Inc",
+      subdomain: "globex",
+      description: "Another company for testing",
+      contactEmail: "hr@globex.com",
+      phone: "+1-555-987-6543",
+      address: { street: "456 Elm St", city: "Springfield", state: "IL", zipCode: "62704", country: "USA" },
+      subscriptionPlan: "standard",
+      billingEmail: "billing@globex.com",
+      status: "active",
+    },
+    {
+      name: "Initech",
+      subdomain: "initech",
+      description: "Software company for seeding data",
+      contactEmail: "hr@initech.com",
+      phone: "+1-555-555-1212",
+      address: { street: "789 Oak St", city: "Silicon Valley", state: "CA", zipCode: "94043", country: "USA" },
+      subscriptionPlan: "pro",
+      billingEmail: "billing@initech.com",
+      status: "active",
+    },
+  ];
+
+  const companies = [];
+  for (const companyData of companiesData) {
+    const company = await prisma.company.upsert({
+      where: { name: companyData.name },
+      update: {}, // do nothing if exists
+      create: companyData,
+    });
+    companies.push(company);
+  }
+
+  // --- Departments ---
+  const deptNames = ["Human Resources", "IT", "Engineering", "Sales", "Marketing"];
+  const allDepartments = [];
+
+  for (const company of companies) {
+    for (const name of deptNames) {
+      const dept = await prisma.department.upsert({
+        where: { companyId_name: { companyId: company.id, name } },
+        update: {},
+        create: {
+          companyId: company.id,
+          name,
+          description: `${name} department`,
+        },
+      });
+      allDepartments.push({ ...dept, companyId: company.id });
+    }
+  }
+
+  // --- Users ---
+  const users = [];
+
+  for (const company of companies) {
+    const companyDepts = allDepartments.filter((d) => d.companyId === company.id);
+
+    // Admin
+    const admin = await prisma.user.upsert({
+      where: { email: `admin@${company.subdomain}.com` },
+      update: {},
+      create: {
+        companyId: company.id,
+        email: `admin@${company.subdomain}.com`,
+        passwordHash,
+        role: UserRole.ADMIN,
+        firstName: "Admin",
+        lastName: company.name.split(" ")[0],
+        position: "HR Administrator",
+        employmentType: EmploymentType.FULL_TIME,
+        status: EmploymentStatus.ACTIVE,
+        employeeId: `EMP-${company.subdomain}-001`,
+        departmentId: companyDepts.find((d) => d.name === "Human Resources")?.id,
+        dateHired: new Date("2022-01-01"),
+      },
+    });
+    users.push(admin);
+
+    // Manager
+    const manager = await prisma.user.upsert({
+      where: { email: `manager@${company.subdomain}.com` },
+      update: {},
+      create: {
+        companyId: company.id,
+        email: `manager@${company.subdomain}.com`,
+        passwordHash,
+        role: UserRole.MANAGER,
+        firstName: "Manager",
+        lastName: company.name.split(" ")[0],
+        position: "Team Manager",
+        employmentType: EmploymentType.FULL_TIME,
+        status: EmploymentStatus.ACTIVE,
+        employeeId: `EMP-${company.subdomain}-002`,
+        departmentId: companyDepts.find((d) => d.name === "Engineering")?.id,
+        dateHired: new Date("2022-06-01"),
+      },
+    });
+    users.push(manager);
+
+    // Employees
+    const employeeData = [
+      { firstName: "Alice", lastName: "Dev", position: "Software Engineer", deptName: "Engineering" },
+      { firstName: "Bob", lastName: "Designer", position: "UI/UX Designer", deptName: "Engineering" },
+      { firstName: "Charlie", lastName: "Sales", position: "Sales Rep", deptName: "Sales" },
+      { firstName: "Dana", lastName: "Marketer", position: "Marketing Specialist", deptName: "Marketing" },
+    ];
+
+    for (let i = 0; i < employeeData.length; i++) {
+      const emp = employeeData[i];
+      const user = await prisma.user.upsert({
+        where: { email: `${emp.firstName.toLowerCase()}@${company.subdomain}.com` },
+        update: {},
+        create: {
+          companyId: company.id,
+          email: `${emp.firstName.toLowerCase()}@${company.subdomain}.com`,
+          passwordHash,
+          role: UserRole.EMPLOYEE,
+          firstName: emp.firstName,
+          lastName: emp.lastName,
+          position: emp.position,
+          employmentType: EmploymentType.FULL_TIME,
+          status: EmploymentStatus.ACTIVE,
+          employeeId: `EMP-${company.subdomain}-00${i + 3}`,
+          departmentId: companyDepts.find((d) => d.name === emp.deptName)?.id,
+          managerId: manager.id,
+          dateHired: new Date(`2023-0${i + 1}-15`),
+        },
+      });
+      users.push(user);
+    }
+  }
+
+  // --- Leave Types ---
+  const leaveTypes = ["Annual Leave", "Sick Leave", "Maternity Leave"];
+  const allLeaveTypes = [];
+
+  for (const company of companies) {
+    for (const name of leaveTypes) {
+      const leave = await prisma.leaveType.upsert({
+        where: { companyId_name: { companyId: company.id, name } },
+        update: {},
+        create: {
+          companyId: company.id,
+          name,
+          description: `${name} for ${company.name}`,
+          allowanceDays: name === "Annual Leave" ? 20 : 10,
+        },
+      });
+      allLeaveTypes.push({ ...leave, companyId: company.id });
+    }
+  }
+
+  console.log("✅ Database seeded successfully!");
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum UserRole {
-  ADMIN
-  HR
-  MANAGER
-  EMPLOYEE
-}
-
-enum EmploymentType {
-  FULL_TIME
-  PART_TIME
-  CONTRACTOR
-  INTERN
-}
-
-enum EmploymentStatus {
-  ACTIVE
-  ONBOARDING
-  PROBATION
-  INACTIVE
-  TERMINATED
-}
-
-enum LeaveStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CANCELLED
-}
-
-enum DocumentType {
-  CONTRACT
-  PAYSLIP
-  POLICY
-  CERTIFICATE
-  IDENTIFICATION
-  OTHER
-}
-
-enum PayrollStatus {
-  DRAFT
-  PROCESSED
-  PAID
-  FAILED
-}
-
-model Company {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  subdomain   String   @unique
-  logo        String?
-  website     String?
-  contactEmail String
-  phone       String?
-  address     Json?    // { street, city, state, zipCode, country }
-  
-  // Subscription & Billing
-  subscriptionPlan String
-  billingEmail     String
-  billingAddress   Json?
-  status           String  // e.g., active, trial, cancelled
-  currentPeriodEnd DateTime?
-  
-  // Settings
-  settings     CompanySettings?
-  integrations CompanyIntegration[]
-  
-  // Relationships
-  departments Department[]
-  users       User[]
-  leavePolicies LeavePolicy[]
-  leaveTypes  LeaveType[]
-  auditLogs   AuditLog[]
-  documents   Document[]
-  payrolls    Payroll[]
-  performanceReviews PerformanceReview[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model CompanySettings {
-  id        String   @id @default(cuid())
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId String   @unique
-  
-  // Security Policies
-  passwordMinLength      Int      @default(8)
-  passwordRequireSpecial Boolean  @default(true)
-  passwordRequireNumber  Boolean  @default(true)
-  passwordExpiryDays     Int?     // null means no expiration
-  sessionTimeoutMinutes  Int      @default(480) // 8 hours
-  twoFactorEnabled       Boolean  @default(false)
-  
-  // Leave Policies
-  defaultAnnualLeaveDays Int      @default(20)
-  carryOverLeaveDays     Int      @default(5)
-  probationPeriodDays    Int      @default(90)
-  
-  // Other Settings
-  workingDays          Int[]     @default([1, 2, 3, 4, 5]) // Monday to Friday
-  dailyWorkingHours    Float     @default(8.0)
-  overtimeEnabled      Boolean   @default(true)
-  automaticLeaveAccrual Boolean  @default(true)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model CompanyIntegration {
-  id          String   @id @default(cuid())
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  type        String   // e.g., PAYROLL, STORAGE, CALENDAR
-  name        String
-  isActive    Boolean  @default(false)
-  credentials Json?    // Encrypted credentials
-  settings    Json?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model User {
-  id            String   @id @default(cuid())
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String
-  email         String   @unique
-  passwordHash  String
-  role          UserRole
-  
-  // Personal Information
-  firstName     String
-  lastName      String
-  avatar        String?
-  phone         String?
-  personalEmail String?
-  dateOfBirth   DateTime?
-  address       Json?    // { street, city, state, zipCode, country }
-  
-  // Employment Details
-  employeeId    String?   @unique
-  department    Department? @relation(fields: [departmentId], references: [id])
-  departmentId  String?
-  position      String
-  employmentType EmploymentType
-  status        EmploymentStatus @default(ONBOARDING)
-  dateHired     DateTime?
-  dateTerminated DateTime?
-  manager       User?     @relation("EmployeeManager", fields: [managerId], references: [id])
-  managerId     String?
-  
-  // Financial Information (encrypted)
-  bankAccount   Json?
-  taxInfo       Json?
-  
-  // Relationships
-  managedTeam   User[]    @relation("EmployeeManager")
-  managedDepartment Department? @relation("DepartmentHead")
-  leaveRequests LeaveRequest[]
-  leaveBalances LeaveBalance[]
-  attendances   Attendance[]
-  documents     Document[] @relation("UserDocuments")
-  uploadedDocuments Document[] @relation("UploadedDocuments")
-  payrolls      Payroll[]
-  performanceReviewsAsReviewee PerformanceReview[] @relation("RevieweeReviews")
-  performanceReviewsAsReviewer PerformanceReview[] @relation("ReviewerReviews")
-  approvedLeaveRequests LeaveRequest[] @relation("ApprovedLeaveRequests")
-  auditLogs    AuditLog[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([companyId, email])
-  @@index([companyId, role])
-  @@index([companyId, departmentId])
-}
-
-model Department {
-  id          String   @id @default(cuid())
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  name        String
-  description String?
-  head        User?    @relation("DepartmentHead", fields: [headId], references: [id])
-  headId      String?  @unique
-  
-  // Relationships
-  users       User[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@unique([companyId, name])
-}
-
-model LeaveType {
-  id          String   @id @default(cuid())
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  name        String   // e.g., "Annual Leave", "Sick Leave", "Personal Leave"
-  description String?
-  color       String   @default("#3B82F6")
-  isPaid      Boolean  @default(true)
-  requiresApproval Boolean @default(true)
-  maxConsecutiveDays Int?
-  allowanceDays Int    @default(0)
-  
-  // Relationships
-  leaveBalances LeaveBalance[]
-  leaveRequests LeaveRequest[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@unique([companyId, name])
-}
-
-model LeavePolicy {
-  id          String   @id @default(cuid())
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  name        String
-  description String?
-  rules       Json     // Flexible rule definitions
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model LeaveBalance {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id])
-  leaveTypeId String
-  balance     Float    @default(0)
-  accrued     Float    @default(0)
-  used        Float    @default(0)
-  year        Int      @default(2023)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@unique([userId, leaveTypeId, year])
-}
-
-model LeaveRequest {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id])
-  leaveTypeId String
-  startDate   DateTime
-  endDate     DateTime
-  reason      String?
-  status      LeaveStatus @default(PENDING)
-  
-  // Approval process
-  approvedBy  User?    @relation("ApprovedLeaveRequests", fields: [approvedById], references: [id])
-  approvedById String?
-  approvedAt  DateTime?
-  comments    String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Attendance {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  date      DateTime
-  clockIn   DateTime?
-  clockOut  DateTime?
-  breakStart DateTime?
-  breakEnd  DateTime?
-  hoursWorked Float?
-  status    String   // e.g., PRESENT, ABSENT, LATE, HALF_DAY
-  notes     String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@unique([userId, date])
-}
-
-model Document {
-  id          String       @id @default(cuid())
-  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  user        User?        @relation("UserDocuments", fields: [userId], references: [id], onDelete: Cascade)
-  userId      String?
-  title       String
-  description String?
-  type        DocumentType
-  category    String?      // e.g., "HR Policies", "Employee Contracts", "Training Materials"
-  fileUrl     String
-  fileName    String
-  fileSize    Int?
-  uploadedBy  User         @relation("UploadedDocuments", fields: [uploadedById], references: [id])
-  uploadedById String
-  payroll    Payroll[]  
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Payroll {
-  id              String   @id @default(cuid())
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId       String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String
-  payPeriodStart  DateTime
-  payPeriodEnd    DateTime
-  baseSalary      Float
-  overtimeHours   Float    @default(0)
-  overtimePay     Float    @default(0)
-  bonuses         Float    @default(0)
-  deductions      Json?    // { tax: number, insurance: number, retirement: number }
-  netPay          Float
-  status          PayrollStatus @default(DRAFT)
-  processedAt     DateTime?
-  paidAt          DateTime?
-  
-  // File attachment
-  payslip         Document? @relation(fields: [payslipId], references: [id])
-  payslipId       String?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model PerformanceReview {
-  id          String   @id @default(cuid())
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId   String
-  reviewee    User     @relation("RevieweeReviews", fields: [revieweeId], references: [id])
-  revieweeId  String
-  reviewer    User     @relation("ReviewerReviews", fields: [reviewerId], references: [id])
-  reviewerId  String
-  reviewDate  DateTime
-  goals       String?
-  strengths   String?
-  improvements String?
-  rating      Int?     // 1-5 scale
-  feedback    String?
-  isCompleted Boolean  @default(false)
-  completedAt DateTime?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  companyId String?  // make optional
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    String?
-  action    String
-  resource  String?
-  resourceId String?
-  details   Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-}
-
+main()
+  .catch((e) => {
+    console.error("❌ Seed error:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -4,7 +4,7 @@ const cors = require("cors");
 const authRoutes = require("./src/routes/AuthRoutes.js");
 const managerRoutes = require("./src/routes/ManagerRoutes.js"); // 👈 new
 const teamRoutes = require("./src/routes/TeamRoutes.js");
-
+const approvalsRouter = require("./src/routes/approvals.js");
 
 dotenv.config();
 const app = express();
@@ -16,6 +16,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/manager", managerRoutes); // 👈 new
 app.use("/manager/team", teamRoutes);
+app.use("/manager/approvals", approvalsRouter);
 
 app.get("/", (req, res) => {
   res.send("✅ Server is running...");
