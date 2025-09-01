@@ -380,3 +380,7 @@ model AuditLog {
   createdAt DateTime @default(now())
 }
 
+// Prisma seeding configuration
+generator seed {
+  provider = "ts-node"
+}

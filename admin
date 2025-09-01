@@ -1,7 +1,6 @@
-import { Request, Response } from "express";
-import { prisma } from "../prismaClient.js"; // adjust path if different
+import { prisma } from "../prismaClient.js"; // adjust path if needed
 
-export const getDashboardStats = async (req: Request, res: Response) => {
+export const getDashboardStats = async (req, res) => {
   try {
     // Total employees
     const totalEmployees = await prisma.user.count({

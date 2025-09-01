@@ -265,7 +265,7 @@ CREATE TABLE "public"."PerformanceReview" (
 -- CreateTable
 CREATE TABLE "public"."AuditLog" (
     "id" TEXT NOT NULL,
-    "companyId" TEXT NOT NULL,
+    "companyId" TEXT,
     "userId" TEXT,
     "action" TEXT NOT NULL,
     "resource" TEXT,

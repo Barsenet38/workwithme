@@ -1,4 +1,3 @@
-import type { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -6,30 +5,42 @@ import chalk from "chalk";
 
 const prisma = new PrismaClient();
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req, res) => {
   const { username, password } = req.body;
 
-  if (!username || !password) return res.status(400).json({ success: false, message: "Missing credentials" });
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing credentials" });
+  }
 
   try {
     const user = await prisma.user.findUnique({
       where: { email: username },
-      include: { company: true }
+      include: { company: true },
     });
 
-    if (!user) return res.status(401).json({ success: false, message: "User not found" });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
 
     const passwordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!passwordValid) return res.status(401).json({ success: false, message: "Invalid credentials" });
+    if (!passwordValid) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
+    }
 
     // ✅ Include ALL necessary data in JWT token
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        role: user.role, 
+      {
+        userId: user.id,
+        role: user.role,
         companyId: user.companyId,
         name: `${user.firstName} ${user.lastName}`,
-        companySubdomain: user.company.subdomain // ← ADD THIS LINE
+        companySubdomain: user.company.subdomain, // ← important
       },
       process.env.JWT_SECRET || "supersecret",
       { expiresIn: "8h" }
