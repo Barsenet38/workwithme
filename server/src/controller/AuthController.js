@@ -1,0 +1,66 @@
+// controllers/authController.js
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const chalk = require("chalk");
+
+const prisma = new PrismaClient();
+
+const login = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing credentials" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: username },
+      include: { company: true },
+    });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const passwordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordValid) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    // ✅ Include ALL necessary data in JWT token
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        companyId: user.companyId,
+        name: `${user.firstName} ${user.lastName}`,
+        companySubdomain: user.company.subdomain,
+      },
+      process.env.JWT_SECRET || "supersecret",
+      { expiresIn: "8h" }
+    );
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+        companySubdomain: user.company.subdomain,
+      },
+      token,
+    });
+  } catch (err) {
+    console.error(chalk.red(err));
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+module.exports = { login };
