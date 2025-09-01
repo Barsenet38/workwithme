@@ -1,20 +1,18 @@
-// server.js
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const authRoutes = require("./src/routes/AuthRoutes.js"); // 👈 make sure file name matches
+const authRoutes = require("./src/routes/AuthRoutes.js");
+const managerRoutes = require("./src/routes/ManagerRoutes.js"); // 👈 new
 
 dotenv.config();
 const app = express();
 
-// ✅ Enable CORS
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-
-// Middleware
 app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/manager", managerRoutes); // 👈 new
 
 app.get("/", (req, res) => {
   res.send("✅ Server is running...");
