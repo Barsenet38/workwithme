@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import RoleLayout from "@/components/layout/RoleLayout";
 import MainLayout from "@/components/layout/MainLayout";
-import Card from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Users, Calendar, CheckCircle, BarChart3, Target, Clock } from "lucide-react";
 import clsx from "clsx";
 

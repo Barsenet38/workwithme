@@ -1,6 +1,6 @@
 import RoleLayout from "@/components/layout/RoleLayout";
 import MainLayout from "@/components/layout/MainLayout";
-import Card from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { User, Calendar, FileText, Clock, Award, Bell } from "lucide-react";
 
 export default function EmployeeDashboard() {
