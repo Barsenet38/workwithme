@@ -71,48 +71,66 @@ export default function ApprovalsPage() {
       <MainLayout title="Manager Approvals" description="Approve or reject pending requests" showHeader>
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-4">Pending Approvals</h1>
-          {loading ? (
-            <p>Loading requests...</p>
-          ) : error ? (
-            <p className="text-red-400">{error}</p>
-          ) : !requests.length ? (
-            <p>No pending requests.</p>
-          ) : (
-            <div className="space-y-4">
-              {requests.map((req) => (
-                <Link
-                  key={req.id}
-                  href={`/${userData?.companySubdomain}/manager/approvals/${req.id}`}
-                  className="block bg-slate-800/70 p-4 rounded-lg hover:bg-slate-700 transition"
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-slate-200 font-semibold">
-                        {req.user.firstName} {req.user.lastName}
-                      </p>
-                      <p className="text-slate-400">{req.leaveType.name}</p>
-                      <p className="text-slate-400">
-                        {new Date(req.startDate).toLocaleDateString()} - {new Date(req.endDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p
-                        className={`px-3 py-1 rounded font-semibold ${
-                          req.status === "PENDING"
-                            ? "bg-yellow-600 text-white"
-                            : req.status === "APPROVED"
-                            ? "bg-green-700 text-white"
-                            : "bg-red-700 text-white"
-                        }`}
-                      >
-                        {req.status}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+{loading ? (
+  <p>Loading requests...</p>
+) : error ? (
+  <p className="text-red-400">{error}</p>
+) : !requests.length ? (
+  <p>No pending requests.</p>
+) : (
+  <div className="overflow-x-auto rounded-lg border border-slate-700">
+    <table className="w-full border-collapse text-sm">
+      <thead className="bg-slate-800/80">
+        <tr>
+          <th className="px-4 py-3 text-left text-slate-300">Employee</th>
+          <th className="px-4 py-3 text-left text-slate-300">Leave Type</th>
+          <th className="px-4 py-3 text-left text-slate-300">Dates</th>
+          <th className="px-4 py-3 text-left text-slate-300">Status</th>
+          <th className="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {requests.map((req) => (
+          <tr
+            key={req.id}
+            className="border-t border-slate-700 hover:bg-slate-700/50 transition"
+          >
+            <td className="px-4 py-3 text-slate-200 font-medium">
+              {req.user.firstName} {req.user.lastName}
+            </td>
+            <td className="px-4 py-3 text-slate-400">{req.leaveType.name}</td>
+            <td className="px-4 py-3 text-slate-400">
+              {new Date(req.startDate).toLocaleDateString()} -{" "}
+              {new Date(req.endDate).toLocaleDateString()}
+            </td>
+            <td className="px-4 py-3">
+              <span
+                className={`px-3 py-1 rounded text-xs font-semibold ${
+                  req.status === "PENDING"
+                    ? "bg-yellow-600 text-white"
+                    : req.status === "APPROVED"
+                    ? "bg-green-700 text-white"
+                    : "bg-red-700 text-white"
+                }`}
+              >
+                {req.status}
+              </span>
+            </td>
+            <td className="px-4 py-3 text-right">
+              <Link
+                href={`/${userData?.companySubdomain}/manager/approvals/${req.id}`}
+                className="text-cyan-400 hover:underline font-medium"
+              >
+                View
+              </Link>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+
         </div>
       </MainLayout>
     </RoleLayout>

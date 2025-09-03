@@ -257,9 +257,9 @@ export default function Sidebar() {
 
         {/* Employee Navigation */}
         <Link 
-          href={`/${company}/employee/profile`}
+          href={`/${company}/${user.role.toLowerCase()}/profile`}
           className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            pathname?.includes('/employee/profile') 
+            pathname?.includes('/profile') 
               ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
               : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
           }`}

@@ -53,7 +53,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ userProfile }) => {
       <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700/50">
         <h3 className="text-xl font-semibold text-cyan-300 mb-4">Employment Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoItem icon={Building} label="Department" value={userProfile.department} />
+          <InfoItem
+            icon={Building}
+            label="Department"
+            value={userProfile.department ? userProfile.department.name : 'Not provided'}
+          />
           <InfoItem icon={User} label="Position" value={userProfile.position} />
           <InfoItem icon={Calendar} label="Employment Type" value={formatEmploymentType(userProfile.employmentType)} />
           <InfoItem icon={Calendar} label="Date Hired" value={formatDate(userProfile.dateHired)} />

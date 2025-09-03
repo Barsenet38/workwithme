@@ -1,0 +1,69 @@
+const { PrismaClient } = require("@prisma/client");
+const jwt = require("jsonwebtoken");
+
+const prisma = new PrismaClient();
+
+const getUserProfile = async (req, res) => {
+  try {
+    const { id, email, employeeId } = req.params;
+
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      res.status(401).json({ error: "No token provided" });
+      return;
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "supersecret");
+
+    // Build dynamic `where` object
+    const where = {};
+    if (id) where.id = id;
+    if (email) where.email = email;
+    if (employeeId) where.employeeId = employeeId;
+
+    if (Object.keys(where).length === 0) {
+      res
+        .status(400)
+        .json({ error: "Provide at least one identifier: id, email, or employeeId" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where,
+      include: {
+        department: true,
+        company: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        personalEmail: user.personalEmail,
+        dateOfBirth: user.dateOfBirth,
+        address: user.address,
+        position: user.position,
+        employmentType: user.employmentType,
+        dateHired: user.dateHired,
+        employeeId: user.employeeId,
+        role: user.role,
+        department: user.department,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { getUserProfile };
