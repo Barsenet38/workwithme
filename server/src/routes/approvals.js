@@ -36,6 +36,98 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET stats for a manager
+// GET stats for a manager
+router.get("/stats", async (req, res) => {
+  const { managerId, companyId } = req.query;
+
+  if (!managerId || !companyId) {
+    return res.status(400).json({ success: false, message: "ManagerId and CompanyId are required" });
+  }
+
+  try {
+    const pending = await prisma.leaveRequest.count({
+      where: { user: { managerId, companyId }, status: "PENDING" }
+    });
+
+    const approved = await prisma.leaveRequest.count({
+      where: { user: { managerId, companyId }, status: "APPROVED" }
+    });
+
+    const rejected = await prisma.leaveRequest.count({
+      where: { user: { managerId, companyId }, status: "REJECTED" }
+    });
+
+    // Group by userId
+    const byDepartment = await prisma.leaveRequest.groupBy({
+      by: ['userId'], 
+      where: {
+        user: {
+          managerId,
+          companyId,
+        },
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    // Format department data
+    const departmentData = await Promise.all(
+      byDepartment.map(async (req) => {
+        const user = await prisma.user.findUnique({
+          where: { id: req.userId },
+          select: { department: true },
+        });
+        return {
+          name: user?.department?.name || 'Unassigned',
+          count: req._count.id,
+        };
+      })
+    );
+
+    // Get counts by leave type
+    const byLeaveType = await prisma.leaveRequest.groupBy({
+      by: ['leaveTypeId'],
+      where: {
+        user: {
+          managerId,
+          companyId,
+        },
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const leaveTypeData = await Promise.all(
+      byLeaveType.map(async (type) => {
+        const leaveType = await prisma.leaveType.findUnique({
+          where: { id: type.leaveTypeId },
+        });
+        return {
+          name: leaveType?.name || 'Unknown',
+          count: type._count.id,
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      data: {
+        pending,
+        approved,
+        rejected,
+        byDepartment: departmentData,
+        byLeaveType: leaveTypeData,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error fetching stats" });
+  }
+});
+
 // GET a single leave request by ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
@@ -90,5 +182,7 @@ router.post("/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error updating leave request" });
   }
 });
+
+
 
 module.exports = router;
