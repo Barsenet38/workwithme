@@ -5,7 +5,9 @@ const authRoutes = require("./src/routes/AuthRoutes.js");
 const managerRoutes = require("./src/routes/ManagerRoutes.js"); // 👈 new
 const teamRoutes = require("./src/routes/TeamRoutes.js");
 const approvalsRouter = require("./src/routes/approvals.js");
-const UserRoutes = require("./src/routes/UserRoutes.js")
+const UserRoutes = require("./src/routes/UserRoutes.js");
+const performanceRoutes = require('./src/routes/performance.js');
+
 
 dotenv.config();
 const app = express();
@@ -19,7 +21,8 @@ app.use("/manager", managerRoutes); // 👈 new
 app.use("/manager/team", teamRoutes);
 app.use("/manager/approvals", approvalsRouter);
 app.use("/api/users", UserRoutes);
-
+// In your server setup (e.g., app.js or index.js)
+app.use('/manager/performance', performanceRoutes);
 app.get("/", (req, res) => {
   res.send("✅ Server is running...");
 });
