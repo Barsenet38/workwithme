@@ -34,6 +34,9 @@ export default function DashboardRedirect() {
           case "EMPLOYEE":
             router.push(`/${company}/employee`);
             break;
+            case "SUPERADMIN":
+            router.push(`/${company}/superadmin`);
+            break;
           default:
             router.push("/auth");
         }

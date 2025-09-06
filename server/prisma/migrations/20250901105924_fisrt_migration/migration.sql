@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "public"."UserRole" AS ENUM ('ADMIN', 'HR', 'MANAGER', 'EMPLOYEE');
+CREATE TYPE "public"."UserRole" AS ENUM ('ADMIN', 'HR', 'MANAGER', 'EMPLOYEE', 'SUPERADMIN');
 
 -- CreateEnum
 CREATE TYPE "public"."EmploymentType" AS ENUM ('FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'INTERN');

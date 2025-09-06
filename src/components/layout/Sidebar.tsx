@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -8,7 +9,8 @@ import {
   Home, Users, Settings, FileText, 
   Calendar, DollarSign, BarChart3, 
   LogOut, User, Shield, Briefcase,
-  Hexagon, CreditCard, GitMerge, BarChart
+  Hexagon, CreditCard, GitMerge, BarChart,
+  Search, ChevronDown, Key
 } from "lucide-react";
 import { JwtPayload } from '@/types/user';
 
@@ -22,6 +24,7 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<SidebarUserData | null>(null);
+  const [isSuperadminMenuOpen, setIsSuperadminMenuOpen] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -45,6 +48,10 @@ export default function Sidebar() {
 
   const isActive = (path: string): boolean => pathname === path;
 
+  const toggleSuperadminMenu = () => {
+    setIsSuperadminMenuOpen(!isSuperadminMenuOpen);
+  };
+
   if (!user) return null;
 
   return (
@@ -59,7 +66,7 @@ export default function Sidebar() {
             </div>
           </div>
           <h2 className="text-xl font-bold ml-3 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            {company}
+            {user.role === "SUPERADMIN" ? "Platform Admin" : company}
           </h2>
         </div>
         <p className="text-sm text-slate-400">Welcome back,</p>
@@ -70,21 +77,143 @@ export default function Sidebar() {
       </div>
 
       <nav className="space-y-1">
+        {/* Search Bar for Superadmin */}
+        {user.role === "SUPERADMIN" && (
+          <div className="mb-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full py-2 px-4 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+              />
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+            </div>
+          </div>
+        )}
+
+        {/* Superadmin Navigation */}
+        {user.role === "SUPERADMIN" && (
+          <>
+            <button
+              onClick={toggleSuperadminMenu}
+              className="flex items-center w-full py-3 px-4 rounded-lg transition-all duration-200 hover:bg-slate-800/50 hover:text-cyan-300"
+            >
+              <Shield className="h-4 w-4 mr-3" />
+              Superadmin Controls
+              <ChevronDown className={`h-4 w-4 ml-auto transition-transform ${isSuperadminMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isSuperadminMenuOpen && (
+              <div className="pl-4 space-y-1">
+                <Link 
+                  href="/superadmin/dashboard"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/dashboard") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <Home className="h-4 w-4 mr-3" />
+                  Dashboard
+                </Link>
+                <Link 
+                  href="/superadmin/tenants"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/tenants") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <Users className="h-4 w-4 mr-3" />
+                  Tenant Management
+                </Link>
+                <Link 
+                  href="/superadmin/billing"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/billing") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <CreditCard className="h-4 w-4 mr-3" />
+                  Global Billing
+                </Link>
+                <Link 
+                  href="/superadmin/monitoring"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/monitoring") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <BarChart3 className="h-4 w-4 mr-3" />
+                  System Monitoring
+                </Link>
+                <Link 
+                  href="/superadmin/audit-logs"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/audit-logs") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <FileText className="h-4 w-4 mr-3" />
+                  Audit Logs
+                </Link>
+                <Link 
+                  href="/superadmin/api-management"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/api-management") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <Key className="h-4 w-4 mr-3" />
+                  API Management
+                </Link>
+                <Link 
+                  href="/superadmin/settings"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/settings") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <Settings className="h-4 w-4 mr-3" />
+                  Platform Settings
+                </Link>
+                <Link 
+                  href="/superadmin/profile"
+                  className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                    isActive("/superadmin/profile") 
+                      ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                      : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+                  }`}
+                >
+                  <User className="h-4 w-4 mr-3" />
+                  My Profile
+                </Link>
+              </div>
+            )}
+          </>
+        )}
+
         {/* Common Navigation */}
-        <Link 
-          href={`/${company}/dashboard`}
-          className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            isActive(`/${company}/dashboard`) 
-              ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
-              : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
-          }`}
-        >
-          <Home className="h-4 w-4 mr-3" />
-          Dashboard
-        </Link>
+        {user.role !== "SUPERADMIN" && (
+          <Link 
+            href={`/${company}/dashboard`}
+            className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+              isActive(`/${company}/dashboard`) 
+                ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+            }`}
+          >
+            <Home className="h-4 w-4 mr-3" />
+            Dashboard
+          </Link>
+        )}
 
         {/* Admin Navigation */}
-        {user.role === "ADMIN" && (
+        {(user.role === "ADMIN") && (
           <>
             <Link 
               href={`/${company}/admin/dashboard`}
@@ -256,53 +385,54 @@ export default function Sidebar() {
         )}
 
         {/* Employee Navigation */}
-        <Link 
-          href={`/${company}/${user.role.toLowerCase()}/profile`}
-          className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            pathname?.includes('/profile') 
-              ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
-              : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
-          }`}
-        >
-          <User className="h-4 w-4 mr-3" />
-          My Profile
-        </Link>
-
-        <Link 
-          href={`/${company}/employee/leave`}
-          className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            pathname?.includes('/employee/leave') 
-              ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
-              : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
-          }`}
-        >
-          <Calendar className="h-4 w-4 mr-3" />
-          Leave Requests
-        </Link>
-
-        <Link 
-          href={`/${company}/employee/payroll`}
-          className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            pathname?.includes('/employee/payroll') 
-              ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
-              : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
-          }`}
-        >
-          <DollarSign className="h-4 w-4 mr-3" />
-          My Payroll
-        </Link>
-
-        <Link 
-          href={`/${company}/employee/documents`}
-          className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
-            pathname?.includes('/employee/documents') 
-              ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
-              : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
-          }`}
-        >
-          <FileText className="h-4 w-4 mr-3" />
-          Documents
-        </Link>
+        {user.role !== "SUPERADMIN" && (
+          <>
+            <Link 
+              href={`/${company}/${user.role.toLowerCase()}/profile`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/profile') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <User className="h-4 w-4 mr-3" />
+              My Profile
+            </Link>
+            <Link 
+              href={`/${company}/employee/leave`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/employee/leave') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <Calendar className="h-4 w-4 mr-3" />
+              Leave Requests
+            </Link>
+            <Link 
+              href={`/${company}/employee/payroll`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/employee/payroll') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <DollarSign className="h-4 w-4 mr-3" />
+              My Payroll
+            </Link>
+            <Link 
+              href={`/${company}/employee/documents`}
+              className={`flex items-center py-3 px-4 rounded-lg transition-all duration-200 ${
+                pathname?.includes('/employee/documents') 
+                  ? "bg-cyan-600/20 text-cyan-300 border border-cyan-500/30" 
+                  : "hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent"
+              }`}
+            >
+              <FileText className="h-4 w-4 mr-3" />
+              Documents
+            </Link>
+          </>
+        )}
 
         {/* Logout */}
         <button

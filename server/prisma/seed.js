@@ -8,12 +8,14 @@ const {
 } = require("@prisma/client");
 const bcrypt = require("bcrypt");
 
+require("dotenv").config();
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Seeding database...");
 
-  const passwordHash = await bcrypt.hash("password123", 10);
+  const passwordHash = await bcrypt.hash(process.env.SUPERADMIN_PASSWORD || "password123", 10);
 
   // --- Companies ---
   const companiesData = [
@@ -27,6 +29,7 @@ async function main() {
       subscriptionPlan: "pro",
       billingEmail: "billing@acme.com",
       status: "active",
+      currentPeriodEnd: new Date("2026-01-01"),
     },
     {
       name: "Globex Inc",
@@ -38,6 +41,7 @@ async function main() {
       subscriptionPlan: "standard",
       billingEmail: "billing@globex.com",
       status: "active",
+      currentPeriodEnd: new Date("2026-01-01"),
     },
     {
       name: "Initech",
@@ -49,6 +53,7 @@ async function main() {
       subscriptionPlan: "pro",
       billingEmail: "billing@initech.com",
       status: "active",
+      currentPeriodEnd: new Date("2026-01-01"),
     },
   ];
 
@@ -56,11 +61,59 @@ async function main() {
   for (const companyData of companiesData) {
     const company = await prisma.company.upsert({
       where: { name: companyData.name },
-      update: {}, // do nothing if exists
+      update: {},
       create: companyData,
     });
     companies.push(company);
   }
+  console.log(`✅ Created ${companies.length} companies`);
+
+  // --- SuperAdmin ---
+const superAdmin = await prisma.user.upsert({
+  where: { email: "superadmin@hrsystem.com" },
+  update: {},
+  create: {
+    companyId: companies[0].id,
+    email: "superadmin@hrsystem.com",
+    passwordHash,
+    role: UserRole.SUPERADMIN,
+    firstName: "Super",
+    lastName: "Admin",
+    position: "System Administrator",
+    employmentType: EmploymentType.FULL_TIME,
+    status: EmploymentStatus.ACTIVE,
+    employeeId: "EMP-SUPER-001",
+    dateHired: new Date("2022-01-01"),
+  },
+});
+  console.log("✅ SuperAdmin created:", superAdmin.email);
+
+  // --- Company Settings ---
+  const companySettings = [];
+  for (const company of companies) {
+    const settings = await prisma.companySettings.upsert({
+      where: { companyId: company.id },
+      update: {},
+      create: {
+        companyId: company.id,
+        passwordMinLength: 8,
+        passwordRequireSpecial: true,
+        passwordRequireNumber: true,
+        passwordExpiryDays: null,
+        sessionTimeoutMinutes: 480,
+        twoFactorEnabled: false,
+        defaultAnnualLeaveDays: 20,
+        carryOverLeaveDays: 5,
+        probationPeriodDays: 90,
+        workingDays: [1, 2, 3, 4, 5],
+        dailyWorkingHours: 8.0,
+        overtimeEnabled: true,
+        automaticLeaveAccrual: true,
+      },
+    });
+    companySettings.push(settings);
+  }
+  console.log(`✅ Created ${companySettings.length} company settings`);
 
   // --- Departments ---
   const deptNames = ["Human Resources", "IT", "Engineering", "Sales", "Marketing"];
@@ -80,6 +133,7 @@ async function main() {
       allDepartments.push({ ...dept, companyId: company.id });
     }
   }
+  console.log(`✅ Created ${allDepartments.length} departments`);
 
   // --- Users ---
   const users = [];
@@ -161,6 +215,7 @@ async function main() {
       users.push(user);
     }
   }
+  console.log(`✅ Created ${users.length} users`);
 
   // --- Leave Types ---
   const leaveTypes = ["Annual Leave", "Sick Leave", "Maternity Leave"];
@@ -176,11 +231,37 @@ async function main() {
           name,
           description: `${name} for ${company.name}`,
           allowanceDays: name === "Annual Leave" ? 20 : 10,
+          color: "#3B82F6",
+          isPaid: true,
+          requiresApproval: true,
         },
       });
       allLeaveTypes.push({ ...leave, companyId: company.id });
     }
   }
+  console.log(`✅ Created ${allLeaveTypes.length} leave types`);
+
+  // --- Leave Balances ---
+  const leaveBalances = [];
+  for (const user of users) {
+    const companyLeaveTypes = allLeaveTypes.filter((lt) => lt.companyId === user.companyId);
+    for (const leaveType of companyLeaveTypes) {
+      const balance = await prisma.leaveBalance.upsert({
+        where: { userId_leaveTypeId_year: { userId: user.id, leaveTypeId: leaveType.id, year: 2025 } },
+        update: {},
+        create: {
+          userId: user.id,
+          leaveTypeId: leaveType.id,
+          balance: leaveType.allowanceDays,
+          accrued: leaveType.allowanceDays,
+          used: 0,
+          year: 2025,
+        },
+      });
+      leaveBalances.push(balance);
+    }
+  }
+  console.log(`✅ Created ${leaveBalances.length} leave balances`);
 
   console.log("✅ Database seeded successfully!");
 }
